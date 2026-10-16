@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>حسابات واشتراكات طلاب الرياضيات | النسخة المستقلة</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Cairo', -apple-system, BlinkMacSystemFont, sans-serif; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: radial-gradient(120% 120% at 50% 0%, #F0F6FF 0%, #E8F1FC 45%, #E2ECF8 100%);
+      color: #1e293b;
+      min-height: 100vh;
+      padding-bottom: 95px;
+    }
+    .liquid-glass {
+      background: rgba(255, 255, 255, 0.75);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.85);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px -10px rgba(47, 91, 234, 0.08), 0 20px 40px -15px rgba(0,0,0,0.04);
+      padding: 16px;
+    }
+    .dock {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 440px;
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 30px;
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px;
+      box-shadow: 0 15px 35px -5px rgba(47, 91, 234, 0.15);
+      z-index: 100;
+    }
+    .dock-btn {
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748b;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: 16px;
+      transition: all 0.2s;
+    }
+    .dock-btn.active {
+      color: #2F5BEA;
+      background: rgba(47, 91, 234, 0.1);
+    }
+    .primary-btn {
+      background: #2F5BEA;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 16px;
+      font-weight: 800;
+      font-size: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(47, 91, 234, 0.3);
+      transition: transform 0.15s;
+    }
+    .primary-btn:active { transform: scale(0.97); }
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      font-size: 10px;
+      font-weight: 800;
+    }
+    .badge-paid { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-late { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+    .badge-partial { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-active { background: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    @media (min-width: 640px) { .grid-4 { grid-template-columns: repeat(4, 1fr); } }
+    .input-field {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.9);
+      border: 1px solid #cbd5e1;
+      font-size: 13px;
+      outline: none;
+    }
+    .input-field:focus { border-color: #2F5BEA; }
+    .modal-overlay {
+      position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4);
+      backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+      padding: 16px; z-index: 200;
+    }
+  </style>
+</head>
+<body>
+  <div style="max-width: 720px; margin: 0 auto; padding: 14px;">
+    <!-- Top Header -->
+    <div class="liquid-glass" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 14px; background: linear-gradient(135deg, #2F5BEA, #60A5FA); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 18px;">
+          ∑
+        </div>
+        <div>
+          <div style="font-weight: 900; font-size: 15px;" id="teacherNameHeader">أ/ إبراهيم النجار</div>
+          <div style="font-size: 11px; color: #64748b;">حسابات واشتراكات الرياضيات (ملف مستقل)</div>
+        </div>
+      </div>
+      <button class="primary-btn" onclick="openAddStudentPrompt()">
+        + طالب جديد
+      </button>
+    </div>
+
+    <!-- App Content View Container -->
+    <div id="appContainer"></div>
+  </div>
+
+  <!-- Bottom Navigation Dock -->
+  <div class="dock">
+    <button class="dock-btn active" id="tabHome" onclick="switchTab('home')">
+      <span>🏠</span>
+      <span>الرئيسية</span>
+    </button>
+    <button class="dock-btn" id="tabStudents" onclick="switchTab('students')">
+      <span>👥</span>
+      <span>الطلاب</span>
+    </button>
+    <button class="dock-btn" id="tabSessions" onclick="switchTab('sessions')">
+      <span>📅</span>
+      <span>الحصص</span>
+    </button>
+    <button class="dock-btn" id="tabReports" onclick="switchTab('reports')">
+      <span>📊</span>
+      <span>التقارير</span>
+    </button>
+    <button class="dock-btn" id="tabSettings" onclick="switchTab('settings')">
+      <span>⚙️</span>
+      <span>الإعدادات</span>
+    </button>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'math_tutor_app_state_v1';
+    
+    const DEFAULT_DATA = {
+      settings: {
+        teacherName: 'أ/ إبراهيم النجار',
+        currency: 'ج.م',
+        dueDayOfMonth: 5
+      },
+      groups: [
+        { id: 'g1', name: 'تانية ثانوي - تفاضل وحساب مثلثات', grade: 'تانية ثانوي', monthlyFee: 400, sessionsPerCycle: 8, days: [0, 3] },
+        { id: 'g2', name: 'تالتة إعدادي - جبر وهندسة', grade: 'تالتة إعدادي', monthlyFee: 350, sessionsPerCycle: 8, days: [1, 4] }
+      ],
+      students: [
+        { id: 's1', name: 'يوسف أحمد عبد العزيز', parentPhone: '01155443321', groupId: 'g1', joinDate: '2026-10-01' },
+        { id: 's2', name: 'مريم محمود الشناوي', parentPhone: '01099887766', groupId: 'g1', joinDate: '2026-10-01' },
+        { id: 's3', name: 'عمر خالد الصاوي', parentPhone: '01122334455', groupId: 'g1', joinDate: '2026-10-01' },
+        { id: 's4', name: 'سارة طارق المهدي', parentPhone: '01222333444', groupId: 'g2', joinDate: '2026-10-01' },
+        { id: 's5', name: 'زياد إيهاب مصطفى', parentPhone: '01088776655', groupId: 'g2', joinDate: '2026-10-01' },
+        { id: 's6', name: 'نور الدين كريم السعدني', parentPhone: '01177665544', groupId: 'g2', joinDate: '2026-10-01' }
+      ],
+      payments: [
+        { id: 'p1', studentId: 's1', amount: 400, date: '2026-10-02' },
+        { id: 'p2', studentId: 's3', amount: 200, date: '2026-10-04' },
+        { id: 'p3', studentId: 's4', amount: 350, date: '2026-10-01' }
+      ],
+      attendances: [
+        { id: 'a1', studentId: 's2', status: 'absent', action: 'deduct', date: '2026-10-04' }
+      ]
+    };
+
+    function loadState() {
+      try {
+        const str = localStorage.getItem(STORAGE_KEY);
+        if (!str) return DEFAULT_DATA;
+        return JSON.parse(str);
+      } catch (e) {
+        return DEFAULT_DATA;
+      }
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    let state = loadState();
+    let currentTab = 'home';
+
+    function calculateBilling(student) {
+      const group = state.groups.find(g => g.id === student.groupId) || state.groups[0];
+      const fee = group ? group.monthlyFee : 400;
+      const cycle = group ? group.sessionsPerCycle : 8;
+      const pricePerSession = Math.round(fee / cycle);
+
+      const atts = state.attendances.filter(a => a.studentId === student.id && a.status === 'absent' && a.action === 'deduct');
+      const deductedAmount = atts.length * pricePerSession;
+      const finalDue = Math.max(0, fee - deductedAmount);
+
+      const totalPaid = state.payments
+        .filter(p => p.studentId === student.id)
+        .reduce((sum, p) => sum + Number(p.amount), 0);
+
+      const remaining = Math.max(0, finalDue - totalPaid);
+
+      let status = 'active';
+      if (remaining === 0 && totalPaid > 0) status = 'paid';
+      else if (totalPaid > 0 && remaining > 0) status = 'partial';
+      else if (remaining > 0) status = 'late';
+
+      return { fee, pricePerSession, deductedAmount, finalDue, totalPaid, remaining, status };
+    }
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.dock-btn').forEach(b => b.classList.remove('active'));
+      const activeBtn = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
+      if (activeBtn) activeBtn.classList.add('active');
+      render();
+    }
+
+    function sendWhatsApp(phone, studentName, amount) {
+      let num = phone.replace(/[^0-9]/g, '');
+      if (num.startsWith('01')) num = '2' + num;
+      const msg = encodeURIComponent(\`السلام عليكم، تذكير باشتراك الرياضيات للطالب \${studentName} بقيمة \${amount} ج.م عن شهر أكتوبر. تحياتي — \${state.settings.teacherName}\`);
+      window.open(\`https://wa.me/\${num}?text=\${msg}\`, '_blank');
+    }
+
+    function recordPaymentPrompt(studentId) {
+      const student = state.students.find(s => s.id === studentId);
+      const billing = calculateBilling(student);
+      const amt = prompt(\`تسجيل دفعة للطالب \${student.name}\\nالمبلغ المتبقي: \${billing.remaining} ج.م\\nأدخل المبلغ المدفوع:\`, billing.remaining);
+      if (amt && Number(amt) > 0) {
+        state.payments.push({
+          id: 'pay_' + Date.now(),
+          studentId: student.id,
+          amount: Number(amt),
+          date: new Date().toISOString().split('T')[0]
+        });
+        saveState(state);
+        alert('تم تسجيل الدفعة بنجاح!');
+      }
+    }
+
+    function openAddStudentPrompt() {
+      const name = prompt('أدخل اسم الطالب رباعي:');
+      if (!name) return;
+      const phone = prompt('أدخل رقم هاتف ولي الأمر (واتساب):', '01012345678');
+      const newStu = {
+        id: 'stu_' + Date.now(),
+        name: name.trim(),
+        parentPhone: phone ? phone.trim() : '',
+        groupId: state.groups[0]?.id || 'g1',
+        joinDate: new Date().toISOString().split('T')[0]
+      };
+      state.students.push(newStu);
+      saveState(state);
+      alert('تمت إضافة الطالب بنجاح!');
+    }
+
+    function exportBackup() {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'نسخة-احتياطية-اشتراكات.json';
+      a.click();
+    }
+
+    function renderHome() {
+      const totalCollected = state.payments.reduce((s, p) => s + Number(p.amount), 0);
+      const studentBillings = state.students.map(s => ({ student: s, billing: calculateBilling(s) }));
+      const totalTarget = studentBillings.reduce((s, item) => s + item.billing.finalDue, 0);
+      const lateList = studentBillings.filter(item => item.billing.remaining > 0);
+
+      return \`
+        <div class="grid-4" style="margin-bottom: 14px;">
+          <div class="liquid-glass" style="text-align: center;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700;">المحصل هذا الشهر</div>
+            <div style="font-size: 20px; font-weight: 900; color: #16a34a; margin-top: 4px;">\${totalCollected} ج.م</div>
+          </div>
+          <div class="liquid-glass" style="text-align: center;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700;">إجمالي الطلاب</div>
+            <div style="font-size: 20px; font-weight: 900; color: #2F5BEA; margin-top: 4px;">\${state.students.length} طالب</div>
+          </div>
+          <div class="liquid-glass" style="text-align: center;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700;">المتأخرات</div>
+            <div style="font-size: 20px; font-weight: 900; color: #dc2626; margin-top: 4px;">\${Math.max(0, totalTarget - totalCollected)} ج.م</div>
+          </div>
+          <div class="liquid-glass" style="text-align: center;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700;">المجموعات</div>
+            <div style="font-size: 20px; font-weight: 900; color: #7c3aed; margin-top: 4px;">\${state.groups.length} مجموعات</div>
+          </div>
+        </div>
+
+        <div class="liquid-glass" style="margin-bottom: 14px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="font-weight: 900; font-size: 14px;">طلاب يحتاجون المتابعة (المتأخرات)</div>
+            <span class="badge badge-late">\${lateList.length} طلاب</span>
+          </div>
+          \${lateList.map(item => \`
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px; background: rgba(255,255,255,0.7); border-radius: 16px; margin-bottom: 8px;">
+              <div>
+                <div style="font-weight: 800; font-size: 13px;">\${item.student.name}</div>
+                <div style="font-size: 11px; color: #dc2626; font-weight: 700;">متبقي \${item.billing.remaining} ج.م</div>
+              </div>
+              <div style="display: flex; gap: 6px;">
+                <button onclick="sendWhatsApp('\${item.student.parentPhone}', '\${item.student.name}', \${item.billing.remaining})" style="background: #16a34a; color:#fff; border:none; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                  واتساب 💬
+                </button>
+                <button onclick="recordPaymentPrompt('\${item.student.id}')" style="background: #2F5BEA; color:#fff; border:none; padding: 6px 12px; border-radius: 12px; font-size: 11px; font-weight: 700; cursor: pointer;">
+                  سداد 💵
+                </button>
+              </div>
+            </div>
+          \`).join('')}
+        </div>
+      \`;
+    }
+
+    function renderStudents() {
+      return \`
+        <div class="liquid-glass">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div style="font-weight: 900; font-size: 15px;">قائمة الطلاب المسجلين</div>
+            <span style="font-size: 12px; color: #64748b;">\${state.students.length} طالب</span>
+          </div>
+          \${state.students.map(s => {
+            const b = calculateBilling(s);
+            const grp = state.groups.find(g => g.id === s.groupId);
+            return \`
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: rgba(255,255,255,0.8); border-radius: 18px; margin-bottom: 8px;">
+                <div>
+                  <div style="font-weight: 800; font-size: 13px;">\${s.name}</div>
+                  <div style="font-size: 11px; color: #64748b;">\${grp ? grp.name : 'مجموعة'} • \${s.parentPhone}</div>
+                </div>
+                <div style="text-align: left;">
+                  <span class="badge \${b.status === 'paid' ? 'badge-paid' : b.status === 'partial' ? 'badge-partial' : 'badge-late'}">
+                    \${b.status === 'paid' ? 'خالص' : b.status === 'partial' ? 'جزئي' : 'متأخر'}
+                  </span>
+                  <div style="font-size: 12px; font-weight: 800; color: #0f172a; margin-top: 2px;">\${b.remaining > 0 ? b.remaining + ' ج' : 'مسدد'}</div>
+                </div>
+              </div>
+            \`;
+          }).join('')}
+        </div>
+      \`;
+    }
+
+    function renderSessions() {
+      return \`
+        <div class="liquid-glass">
+          <div style="font-weight: 900; font-size: 15px; margin-bottom: 12px;">جدول المجموعات الأسبوعي</div>
+          \${state.groups.map(g => \`
+            <div style="padding: 12px; background: rgba(255,255,255,0.8); border-radius: 18px; margin-bottom: 10px;">
+              <div style="font-weight: 800; font-size: 13px;">\${g.name}</div>
+              <div style="font-size: 11px; color: #2F5BEA; font-weight: 700; margin-top: 2px;">\${g.monthlyFee} ج.م شهرياً • \${g.sessionsPerCycle} حصص</div>
+            </div>
+          \`).join('')}
+        </div>
+      \`;
+    }
+
+    function renderReports() {
+      const totalCollected = state.payments.reduce((s, p) => s + Number(p.amount), 0);
+      return \`
+        <div class="liquid-glass" style="text-align: center; padding: 24px;">
+          <div style="font-weight: 900; font-size: 16px; margin-bottom: 8px;">تقرير اشتراكات شهر أكتوبر 2026</div>
+          <div style="font-size: 28px; font-weight: 900; color: #16a34a; margin-bottom: 8px;">\${totalCollected} ج.م</div>
+          <p style="font-size: 12px; color: #64748b; margin-bottom: 16px;">إجمالي المبالغ المحصلة فعلياً حتى الآن</p>
+          <button class="primary-btn" onclick="window.print()">طباعة كشف الحساب 🖨️</button>
+        </div>
+      \`;
+    }
+
+    function renderSettings() {
+      return \`
+        <div class="liquid-glass">
+          <div style="font-weight: 900; font-size: 15px; margin-bottom: 14px;">الإعدادات والنسخ الاحتياطي</div>
+          <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 700; display: block; margin-bottom: 4px;">اسم الأستاذ:</label>
+            <input class="input-field" id="teacherInput" value="\${state.settings.teacherName}" onchange="state.settings.teacherName=this.value; saveState(state)">
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 16px;">
+            <button class="primary-btn" style="flex: 1;" onclick="exportBackup()">تصدير نسخة JSON 💾</button>
+            <button class="primary-btn" style="flex: 1; background: #dc2626;" onclick="if(confirm('تأكيد استعادة الديمو؟')){state=DEFAULT_DATA; saveState(state);}">إعادة ضبط الديمو 🔄</button>
+          </div>
+        </div>
+      \`;
+    }
+
+    function render() {
+      const container = document.getElementById('appContainer');
+      document.getElementById('teacherNameHeader').innerText = state.settings.teacherName;
+      if (currentTab === 'home') container.innerHTML = renderHome();
+      else if (currentTab === 'students') container.innerHTML = renderStudents();
+      else if (currentTab === 'sessions') container.innerHTML = renderSessions();
+      else if (currentTab === 'reports') container.innerHTML = renderReports();
+      else if (currentTab === 'settings') container.innerHTML = renderSettings();
+    }
+
+    render();
+  </script>
+</body>
+</html>

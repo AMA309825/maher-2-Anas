@@ -1,0 +1,6 @@
+{
+  "name": "حسابات الرياضيات - إدارة الاشتراكات والحصص",
+  "description": "تطبيق إدارة اشتراكات وحصص طلاب مدرس الرياضيات بنمط الزجاج السائل iOS، تتبع الحضور والدفعات ورسائل الواتساب وحساب المتأخرات والتقارير A4",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
